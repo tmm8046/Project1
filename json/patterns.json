@@ -1,0 +1,7 @@
+{
+    "patterns": {
+        "kolakoski sequence": "1, 2, 2, 1, 1, 2, 1, 2, 2, 1",
+        "Euler's totient function": "1, 1, 2, 2, 4, 2, 6, 4, 6, 4"
+        
+    }
+}
