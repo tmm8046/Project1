@@ -7,9 +7,9 @@ const jsonHandler = require('./jsonResponses');
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
 
 const handleGet = (request, response, parsedUrl) => {
-  if (parsedUrl.pathname === './styles/styles.css') {
+  if (parsedUrl.pathname === '/styles/styles.css') {
     htmlHandler.getCSS(request, response);
-  } else if (parsedUrl.pathname === './client/client.html') {
+  } else {
     htmlHandler.getIndex(request, response);
   }
 };
