@@ -3,6 +3,64 @@
 <head>
     <title></title>
     <link rel="stylesheet" href="styles/styles.css"/>
+    <script>
+        const row = 5;
+        const column = 5;
+        const pattern = '1, 2, 4, 8, 16, 32, 64, 128, 256, 512';
+
+        const grid = new Array(row).fill(new Array(column));
+        const guessButton = document.querySelector('#guessButton');
+        let guessNumber = 1;
+
+        // Resets the pattern daily
+        const reset = () => {
+        guessNumber = 1;
+        };
+
+        // Draws the grid
+        const drawGrid = (row, column) => {
+        for (let i = 0; i < row; i++) {
+            for (let j = 0; j < column; j++) {
+            const gridBox = document.createElement('div');
+            gridBox.class = 'tile';
+            grid.push(gridBox);
+            document.querySelector('#grid').appendChild(gridBox);
+            }
+        }
+        };
+
+        // temporary
+        const temporaryGrid = (column) => {
+        for (let i = 0; i < column; i++) {
+            const textbox = document.createElement('input');
+            textbox.type = 'text';
+            textbox.id = `tile${i}`;
+        }
+        };
+
+        // Checks if the user response matches the last 5 numbers in the pattern
+        const checkAnswer = () => {
+        const answer = pattern.split(',');
+        let tile = document.querySelector(`tile${guessNumber}`);
+        const guess = tile.split(',');
+        for (let i = 0; i < answer.length / 2; i++) {
+            if (guess[i] != answer[answer.length / 2 + i]) {
+            return false;
+            }
+        }
+        return true;
+        };
+
+        const init = () => {
+        temporaryGrid(column);
+        guessButton.addEventListener('click', () => {
+            checkAnswer();
+            guessNumber++;
+        });
+        };
+
+        window.onload = init;
+    </script>
 </head>
 <body>
     <div>
@@ -16,6 +74,5 @@
             <button id="guessButton">Guess</button>
         </div>
     </div>
-    <script type = "module" src="src/main.js"></script>
 </body>
 </html>
