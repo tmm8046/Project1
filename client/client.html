@@ -6,7 +6,7 @@
     <script>
         const row = 5;
         const column = 5;
-        //Pattern (temporarily hard coded)
+        //Pattern
         const pattern = '1, 2, 3, 4, 5, 6, 7, 8, 9, 10';
 
         const gridArray = new Array(row).fill(new Array(column));
@@ -48,13 +48,22 @@
         // Checks if the user response matches the last 5 numbers in the pattern
         const checkAnswer = () => {
             const answer = pattern.split(',');
-            // let tile = document.querySelector(`tile${guessNumber}`);
+            let count = 0;
+            const tile = document.querySelector(`tile${guessNumber}`);
+
+            //Loop through guesses to see if answers are correct
             const guess = document.querySelector(`#tile${guessNumber}`).value.split(',');
             for (let i = 0; i < answer.length / 2; i++) {
+                console.log(guess[i]);
+                console.log(answer[(answer.length / 2) + i]);
                 if (guess[i] != answer[(answer.length / 2) + i]) {
-                    document.querySelector("#answerStatus").innerHTML = "Incorrect";
-                    return false;
+                    count++;
                 }
+            }
+
+            if (count === guess.length - 1){
+                document.querySelector("#answerStatus").innerHTML = "Incorrect";
+                return false;
             }
             document.querySelector("#answerStatus").innerHTML = "Congradulations!";
             return true;
