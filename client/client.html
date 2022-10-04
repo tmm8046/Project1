@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <title></title>
-    <link rel="stylesheet" href="styles/styles.css"/>
+    <link rel="stylesheet" href="../styles/styles.css"/>
     <script>
         const row = 5;
         const column = 5;
@@ -27,57 +27,109 @@
         const drawGrid = (row, column) => {
             for (let i = 0; i < row; i++) {
                 for (let j = 0; j < column; j++) {
-                    let gridBox = document.createElement('div');
+                    const gridBox = document.createElement('input');
+                    gridBox.type = "text";
                     gridBox.class = 'tile';
-                    gridArray.push(gridBox);
+                    gridBox.id = `tile${i}_${j}`;
+                    if(i === 0) {
+                        gridBox.disabled = false;
+                    } else {
+                        gridBox.disabled = true;
+                    }
+                    gridArray[i, j] = gridBox;
                     document.querySelector("#grid").appendChild(gridBox);
                 }
+                document.querySelector('#grid').innerHTML += "<br>";
             }
         };
 
         // temporary
-        const drawTemporaryGrid = (column) => {
-            for (let i = 0; i < column; i++) {
-                const textbox = document.createElement("input");
-                textbox.type = 'text';
-                textbox.id = `tile${i}`;
-                document.querySelector("#grid").appendChild(textbox);
-            }
-        };
+        // const drawTemporaryGrid = (column) => {
+        //     for (let i = 0; i < column; i++) {
+        //         const textbox = document.createElement("input");
+        //         textbox.type = 'text';
+        //         textbox.id = `tile${i}`;
+        //         document.querySelector("#grid").appendChild(textbox);
+        //     }
+        // };
 
         // Checks if the user response matches the last 5 numbers in the pattern
+        // const temporaryCheckAnswer = () => {
+        //     const answer = pattern.split(',');
+        //     let count = 0;
+        //     const tile = document.querySelector(`tile${guessNumber}`);
+
+        //     //Loop through guesses to see if answers are correct
+        //     const guess = document.querySelector(`#tile${guessNumber}`).value.split(',');
+        //     for (let i = 0; i < answer.length / 2; i++) {
+        //         console.log(guess[i]);
+        //         console.log(answer[(answer.length / 2) + i]);
+        //         if (guess[i] != answer[(answer.length / 2) + i]) {
+        //             count++;
+        //         }
+        //     }
+
+        //     if (count === guess.length - 1){
+        //         document.querySelector("#answerStatus").innerHTML = "Incorrect";
+        //         return false;
+        //     }
+        //     document.querySelector("#answerStatus").innerHTML = "Congradulations!";
+        //     return true;
+        // };
+
         const checkAnswer = () => {
             const answer = pattern.split(',');
             let count = 0;
-            const tile = document.querySelector(`tile${guessNumber}`);
 
             //Loop through guesses to see if answers are correct
-            const guess = document.querySelector(`#tile${guessNumber}`).value.split(',');
             for (let i = 0; i < answer.length / 2; i++) {
-                console.log(guess[i]);
-                console.log(answer[(answer.length / 2) + i]);
-                if (guess[i] != answer[(answer.length / 2) + i]) {
+                const guess = document.querySelector(`#tile${guessNumber}_${i}`).value;
+
+                console.log(`guess: ${guess}`);
+                console.log(`answer: ${answer[(answer.length / 2) + i]}`);
+                if (parseInt(guess) === parseInt(answer[(answer.length / 2) + i])) {
+                    document.querySelector(`#tile${guessNumber}_${i}`).style.background = "#33FFB2";
                     count++;
+                } else if (includesParsed(answer, guess, answer.length / 2)){
+                    document.querySelector(`#tile${guessNumber}_${i}`).style.background = "#FFED79";
                 }
+                console.log(answer.includes(`${guess} `));
+                console.log(`Count: ${count}`);
             }
 
-            if (count === guess.length - 1){
-                document.querySelector("#answerStatus").innerHTML = "Incorrect";
-                return false;
+            if (count === column){
+                document.querySelector("#answerStatus").innerHTML = "Congradulations!";
+                return true;
             }
-            document.querySelector("#answerStatus").innerHTML = "Congradulations!";
-            return true;
+            document.querySelector("#answerStatus").innerHTML = "Incorrect";
+            return false;
         };
 
+        const includesParsed = (arr, value, length) => {
+            for (let i = 0; i < length; i++) {
+                if(parseInt(arr[length + i]) === parseInt(value)) {
+                    return true;
+                }
+            }
+            return false
+        }
+
         const init = () => {
-            drawTemporaryGrid(column);
+            // drawTemporaryGrid(column);
+            drawGrid(row, column);
             const answer = pattern.split(',');
             for (let i = 0; i < answer.length / 2; i++){
                 document.querySelector('#hint').innerHTML += `${answer[i]}, `;
             }
             document.querySelector('#guessButton').addEventListener("click", () => {
                 checkAnswer();
-                document.querySelector(`#tile${guessNumber}`).disabled = true;
+                // document.querySelector(`#tile${guessNumber}`).disabled = true;
+                for (let i = 0; i < row; i++) {
+                    document.querySelector(`#tile${guessNumber}_${i}`).disabled = true;
+                    if (guessNumber < column) {
+                        document.querySelector(`#tile${guessNumber + 1}_${i}`).disabled = false;
+                    }
+                }
                 guessNumber++;
             });
         };
