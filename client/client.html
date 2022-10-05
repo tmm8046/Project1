@@ -6,8 +6,9 @@
     <script>
         const row = 5;
         const column = 5;
+
         //Pattern
-        const pattern = '1, 2, 3, 4, 5, 6, 7, 8, 9, 10';
+        let pattern = '1, 2, 3, 4, 5, 6, 7, 8, 9, 10';
 
         const gridArray = new Array(row).fill(new Array(column));
         const guessButton = document.querySelector('#guessButton');
@@ -16,11 +17,46 @@
 
         // Resets the pattern daily
         const reset = () => {
-            guessNumber = 1;
+            let reset = new Date();
+
+            reset.setHours(24, 0, 0, 0);
+
+            let time = reset.getTime() - Date.now();
+            setTimeout(function() {
+                guessNumber = 1;
+                reset();
+            }, time);
+
         };
 
-        const requestUpdate = async (userForm) => {
+        const getJson = async () => {
+            const url = "../json/patterns.json";
+
+            fetch(url).then((response) => {
+                return response.json();
+            }).then(data => {
+                console.log(data);
+            }).catch(err => {
+
+            })
+        }
+
+        const handleResponse = async () => {
+
+            // let response = await fetch("../json/patterns.json", {
+            //     headers: {
+            //         'Accept': 'application/json'
+            //     }
+            // });
             
+            // let obj = await response.json();
+
+            let obj = getJson();
+                
+            let random = Math.floor(Math.random() * Object.keys(obj.patterns).length);
+            let jsonString = JSON.stringify(obj.patterns[random]);
+            console.log(jsonString);
+            pattern = jsonString;
         }
 
         // Draws the grid
@@ -43,40 +79,6 @@
             }
         };
 
-        // temporary
-        // const drawTemporaryGrid = (column) => {
-        //     for (let i = 0; i < column; i++) {
-        //         const textbox = document.createElement("input");
-        //         textbox.type = 'text';
-        //         textbox.id = `tile${i}`;
-        //         document.querySelector("#grid").appendChild(textbox);
-        //     }
-        // };
-
-        // Checks if the user response matches the last 5 numbers in the pattern
-        // const temporaryCheckAnswer = () => {
-        //     const answer = pattern.split(',');
-        //     let count = 0;
-        //     const tile = document.querySelector(`tile${guessNumber}`);
-
-        //     //Loop through guesses to see if answers are correct
-        //     const guess = document.querySelector(`#tile${guessNumber}`).value.split(',');
-        //     for (let i = 0; i < answer.length / 2; i++) {
-        //         console.log(guess[i]);
-        //         console.log(answer[(answer.length / 2) + i]);
-        //         if (guess[i] != answer[(answer.length / 2) + i]) {
-        //             count++;
-        //         }
-        //     }
-
-        //     if (count === guess.length - 1){
-        //         document.querySelector("#answerStatus").innerHTML = "Incorrect";
-        //         return false;
-        //     }
-        //     document.querySelector("#answerStatus").innerHTML = "Congradulations!";
-        //     return true;
-        // };
-
         const checkAnswer = () => {
             const answer = pattern.split(',');
             let count = 0;
@@ -85,28 +87,32 @@
             for (let i = 0; i < answer.length / 2; i++) {
                 const guess = document.querySelector(`#tile${guessNumber}_${i}`).value;
 
-                console.log(`guess: ${guess}`);
-                console.log(`answer: ${answer[(answer.length / 2) + i]}`);
                 if (parseInt(guess) === parseInt(answer[(answer.length / 2) + i])) {
                     document.querySelector(`#tile${guessNumber}_${i}`).style.background = "#33FFB2";
                     count++;
                 } else if (includesParsed(answer, guess, answer.length / 2)){
                     document.querySelector(`#tile${guessNumber}_${i}`).style.background = "#FFED79";
                 }
-                console.log(answer.includes(`${guess} `));
-                console.log(`Count: ${count}`);
             }
 
             if (count === column){
+                const answer = pattern.split(',');
+                document.querySelector('#hint').innerHTML = '';
+                for (let i = 0; i < answer.length; i++){
+                    document.querySelector('#hint').innerHTML += `${answer[i]}`;
+                    if(i < answer.length - 1){
+                        document.querySelector('#hint').innerHTML += ', ';
+                    }
+                }
                 document.querySelector("#answerStatus").innerHTML = "Congradulations!";
                 return true;
             }
-            document.querySelector("#answerStatus").innerHTML = "Incorrect";
             return false;
         };
 
-        const includesParsed = (arr, value, length) => {
-            for (let i = 0; i < length; i++) {
+        //Searches array for a parsed value
+        const includesParsed = (arr, value, length = 0) => {
+            for (let i = 0; i < arr.length - length; i++) {
                 if(parseInt(arr[length + i]) === parseInt(value)) {
                     return true;
                 }
@@ -115,15 +121,21 @@
         }
 
         const init = () => {
-            // drawTemporaryGrid(column);
+            handleResponse();
+            console.log(pattern);
+            reset();
             drawGrid(row, column);
             const answer = pattern.split(',');
             for (let i = 0; i < answer.length / 2; i++){
-                document.querySelector('#hint').innerHTML += `${answer[i]}, `;
+                document.querySelector('#hint').innerHTML += `${answer[i]}`;
+                if(i < answer.length / 2 - 1){
+                    document.querySelector('#hint').innerHTML += ', ';
+                } else {
+                    document.querySelector('#hint').innerHTML += '...';
+                }
             }
             document.querySelector('#guessButton').addEventListener("click", () => {
                 checkAnswer();
-                // document.querySelector(`#tile${guessNumber}`).disabled = true;
                 for (let i = 0; i < row; i++) {
                     document.querySelector(`#tile${guessNumber}_${i}`).disabled = true;
                     if (guessNumber < column) {
