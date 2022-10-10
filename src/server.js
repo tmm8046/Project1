@@ -9,7 +9,7 @@ const port = process.env.PORT || process.env.NODE_PORT || 3000;
 const urlStruct = {
   GET: {
     '/': htmlHandler.getIndex,
-    '/style.css': htmlHandler.getCSS,
+    '/styles.css': htmlHandler.getCSS,
     '/getPatterns': jsonHandler.getPattern,
     notFound: jsonHandler.notFound,
   },
@@ -32,15 +32,13 @@ const onRequest = (request, response) => {
   // handleGet(request, response, parsedUrl);
 
   if (!urlStruct[request.method]) {
-    return urlStruct['HEAD'].notFound(request, response);
+    return urlStruct.HEAD.notFound(request, response);
   }
 
   if (urlStruct[request.method][parsedUrl.pathname]) {
     return urlStruct[request.method][parsedUrl.pathname](request, response);
-  } else {
-    return urlStruct[request.method].notFound(request, response);
   }
-
+  return urlStruct[request.method].notFound(request, response);
 };
 
 http.createServer(onRequest).listen(port, () => {

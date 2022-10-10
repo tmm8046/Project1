@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
     <title></title>
-    <link rel="stylesheet" href="../styles/styles.css"/>
+    <link rel="stylesheet" href="/styles.css"/>
     <script>
         const row = 5;
         const column = 5;
-        const url = "../json/patterns.json";
+        const url = "/getPatterns";
 
         //Pattern
-        let pattern = '1, 2, 3, 4, 5, 6, 7, 8, 9, 10';
+        // let pattern = '1, 2, 3, 4, 5, 6, 7, 8, 9, 10';
+        let pattern = '';
 
         const gridArray = new Array(row).fill(new Array(column));
         const guessButton = document.querySelector('#guessButton');
@@ -17,7 +18,7 @@
         let guessNumber = 0;
 
         // Resets the pattern daily
-        const reset = () => {
+        const reset = (obj) => {
             let reset = new Date();
 
             reset.setHours(24, 0, 0, 0);
@@ -25,12 +26,13 @@
             let time = reset.getTime() - Date.now();
             setTimeout(function() {
                 guessNumber = 1;
+                handleResponse(url);
                 reset();
             }, time);
 
         };
 
-        const handleResponse = async (url) => {
+        const handleResponse = async (url, method = "get") => {
 
             let response = await fetch(url, {
                 method,
@@ -54,12 +56,21 @@
                 break;
             }
             
-            let json = await response.json();
+            let obj = await response.json();
 
-            let random = Math.floor(Math.random() * Object.keys(json.patterns).length);
-            let jsonString = JSON.stringify(json.patterns[random]);
+            // obj = JSON.parse(json);
+
+            keys = Object.keys(obj.patterns.patterns);
+
+            let random = Math.floor(Math.random() * keys.length);
+            let jsonString = obj.patterns.patterns[keys[random]];
+            console.log(keys.length);
+            console.log(random);
+            console.log(obj.patterns.patterns);
             console.log(jsonString);
             pattern = jsonString;
+            writeHint();
+
         }
 
         // Draws the grid
@@ -107,6 +118,7 @@
                 }
             }
 
+            //If the answer is correct
             if (count === column){
                 const answer = pattern.split(',');
                 document.querySelector('#hint').innerHTML = '';
@@ -127,6 +139,18 @@
             return false;
         };
 
+        const writeHint = () => {
+            const answer = pattern.split(',');
+            for (let i = 0; i < answer.length / 2; i++){
+                document.querySelector('#hint').innerHTML += `${answer[i]}`;
+                if(i < answer.length / 2 - 1){
+                    document.querySelector('#hint').innerHTML += ', ';
+                } else {
+                    document.querySelector('#hint').innerHTML += '...';
+                }
+            }
+        }
+
         //Searches array for a parsed value
         const includesParsed = (arr, value, length = 0) => {
             for (let i = 0; i < arr.length - length; i++) {
@@ -139,21 +163,9 @@
 
         const init = () => {
 
-            handleResponse(url);
-            console.log(pattern);
-
             reset();
             drawGrid(row, column);
 
-            const answer = pattern.split(',');
-            for (let i = 0; i < answer.length / 2; i++){
-                document.querySelector('#hint').innerHTML += `${answer[i]}`;
-                if(i < answer.length / 2 - 1){
-                    document.querySelector('#hint').innerHTML += ', ';
-                } else {
-                    document.querySelector('#hint').innerHTML += '...';
-                }
-            }
             document.querySelector('#guessButton').addEventListener("click", () => {
                 checkAnswer();
                 for (let i = 0; i < row; i++) {
