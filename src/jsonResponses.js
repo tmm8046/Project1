@@ -1,5 +1,7 @@
 const patterns = require('../json/patterns.json');
 
+let highScore = 0;
+
 const respondJSON = (request, response, status, object) => {
   const headers = {
     'Content-Type': 'application/json',
@@ -37,6 +39,19 @@ const notFound = (request, response) => {
   respondJSON(request, response, 404, responseJSON);
 };
 
+const sendPlayerStats = (request, response, tries) => {
+  if (tries > highScore) {
+    highScore = tries;
+  }
+  const playerStats = {
+    Score: tries,
+    Most: highScore,
+  };
+
+  // return a 201 created status
+  return respondJSON(request, response, 201, playerStats);
+};
+
 const notFoundMeta = (request, response) => {
   respondJSONMeta(request, response, 404);
 };
@@ -46,6 +61,7 @@ module.exports = {
   respondJSONMeta,
   getPattern,
   getPatternMeta,
+  sendPlayerStats,
   notFound,
   notFoundMeta,
 };
