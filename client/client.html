@@ -8,9 +8,8 @@
         const column = 5;
         const url = "/getPatterns";
 
-        //Pattern
-        // let pattern = '1, 2, 3, 4, 5, 6, 7, 8, 9, 10';
         let pattern = '';
+        let gamesPlayed = 0;
 
         const gridArray = new Array(row).fill(new Array(column));
         const guessButton = document.querySelector('#guessButton');
@@ -32,14 +31,7 @@
 
         };
 
-        const handleResponse = async (url, method = "get") => {
-
-            let response = await fetch(url, {
-                method,
-                headers: {
-                    'Accept': 'application/json'
-                },
-            });
+        const handleResponse = async (response) => {
 
             switch(response.status) {
                 case 200: //Success
@@ -47,27 +39,60 @@
                 break;
                 case 400: //Bad Request
                 content.log("Bad Request");
+                document.querySelector('#hint').innerHTML = 'Bad Request';
                 break;
                 case 404: //Not Found
                 content.log("Not Found");
+                document.querySelector('#hint').innerHTML = 'Not Found';
                 break;
                 default: //Anything Else
                 content.log("Status Code not Implemented By Client");
+                document.querySelector('#hint').innerHTML = 'Status Code not Implemented By Client';
                 break;
             }
-            
+
             let obj = await response.json();
 
-            // obj = JSON.parse(json);
+            return obj;
+
+        }
+
+        const getPatterns = async (url, method = "get") => {
+
+            let response = await fetch(url, {
+                method,
+                headers: {
+                    'Accept': 'application/json'
+                },
+            });
+            
+            // let obj = handleResponse(response);
+
+            switch(response.status) {
+                case 200: //Success
+                console.log("Success");
+                break;
+                case 400: //Bad Request
+                content.log("Bad Request");
+                document.querySelector('#hint').innerHTML = 'Bad Request';
+                break;
+                case 404: //Not Found
+                content.log("Not Found");
+                document.querySelector('#hint').innerHTML = 'Not Found';
+                break;
+                default: //Anything Else
+                content.log("Status Code not Implemented By Client");
+                document.querySelector('#hint').innerHTML = 'Status Code not Implemented By Client';
+                break;
+            }
+
+            let obj = await response.json();
 
             keys = Object.keys(obj.patterns.patterns);
 
             let random = Math.floor(Math.random() * keys.length);
             let jsonString = obj.patterns.patterns[keys[random]];
-            console.log(keys.length);
-            console.log(random);
-            console.log(obj.patterns.patterns);
-            console.log(jsonString);
+
             pattern = jsonString;
             writeHint();
 
@@ -94,14 +119,34 @@
         };
         
         //Popup when game ends
-        const popup = () => {
-            let playerScore = guessNumber;
-
+        const popup = (score, played) => {
             let popup = document.createElement("div");
+            // document.querySelector('#main').appendChild(popup);
 
+            document.querySelector("#hint").innerHTML = `Score: ${score} <br> Games Played: ${played}`;
+        }
+
+        //Posts the new stats to the server
+        const sendPost = async (action, method = 'post') => {
+
+            let response = await fetch(action, {
+                method,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json',
+                },
+                body: {
+                    'score': guessNumber,
+                    'played': gamesPlayed++,
+                }
+            });
+
+            let obj = handleResponse(response);
+            popup(obj.score, obj.played);
 
         }
 
+        //checks if each square is correct
         const checkAnswer = () => {
             const answer = pattern.split(',');
             let count = 0;
@@ -109,10 +154,11 @@
             //Loop through guesses to see if answers are correct
             for (let i = 0; i < answer.length / 2; i++) {
                 const guess = document.querySelector(`#tile${guessNumber}_${i}`).value;
-
+                //if the number is correct and in the correct place color the square green
                 if (parseInt(guess) === parseInt(answer[(answer.length / 2) + i])) {
                     document.querySelector(`#tile${guessNumber}_${i}`).style.background = "#33FFB2";
                     count++;
+                //If number is correct but in the wrong place color the square yellow
                 } else if (includesParsed(answer, guess, answer.length / 2)){
                     document.querySelector(`#tile${guessNumber}_${i}`).style.background = "#FFED79";
                 }
@@ -134,7 +180,11 @@
                         document.querySelector(`#tile${i}_${j}`).disabled = true;
                     }
                 }
+                sendPost('/sendPlayerStats');
                 return true;
+            }
+            if(guessNumber === column){
+                sendPost('/sendPlayerStats');
             }
             return false;
         };
@@ -162,8 +212,13 @@
         }
 
         const init = () => {
-            handleResponse(url);
+            getPatterns(url);
             reset();
+            const sendPlayerStats = (e) => {
+                e.preventDefault();
+                sendPost('/sendPlayerStats');
+                return false;
+            }
             drawGrid(row, column);
 
             document.querySelector('#guessButton').addEventListener("click", () => {
@@ -182,7 +237,7 @@
     </script>
 </head>
 <body>
-    <div>
+    <div id="#main">
         <div id="hint">
 
         </div>
